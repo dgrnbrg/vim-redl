@@ -11,8 +11,7 @@ function! foreplay#repl#eval(form)
   endif
   let escaped_form = escape(a:form,'\"')
   let full_form = '(redl.core/repl-eval '.b:repl_id .
-                          \ ' (read-string "(do '.escaped_form.')"))'
-  echo 'full form = '.full_form
+        \ ' (read-string "(do '.escaped_form.')"))'
   return foreplay#evalparse(full_form)
 endfunction
 
@@ -30,15 +29,15 @@ endfunction
 " Moves the cursor to the beginning of the line,
 " respecting the prompt as the beginning
 function! foreplay#repl#beginning_of_line()
-	let l = getline(".")
+  let l = getline(".")
 
-    let prompt = foreplay#repl#prompt()
-	if l =~ "^".prompt
-		let [buf, line, col, off] = getpos(".")
-		call setpos(".", [buf, line, len(prompt) + 2, off])
-	else
-		normal! ^
-	endif
+  let prompt = foreplay#repl#prompt()
+  if l =~ "^".prompt
+    let [buf, line, col, off] = getpos(".")
+    call setpos(".", [buf, line, len(prompt) + 2, off])
+  else
+    normal! ^
+  endif
 endfunction
 
 " Appends the given lines to the end of the buffer
@@ -100,141 +99,148 @@ endfunction
 " This was lifted from vimclojure, and appears to do
 " other fixups to the line.
 function! foreplay#repl#do_enter()
-	execute "normal! a\<CR>x"
-	normal! ==x
-	if getline(".") =~ '^\s*$'
-		startinsert!
-	else
-		startinsert
-	endif
+  execute "normal! a\<CR>x"
+  normal! ==x
+  if getline(".") =~ '^\s*$'
+    startinsert!
+  else
+    startinsert
+  endif
 endfunction
 
 function! foreplay#repl#get_command()
-	let ln = line("$")
+  let ln = line("$")
 
-    let prompt = foreplay#repl#prompt()
-	while getline(ln) !~ "^".prompt && ln > 0
-		let ln = ln - 1
-	endwhile
+  let prompt = foreplay#repl#prompt()
+  while getline(ln) !~ "^".prompt && ln > 0
+    let ln = ln - 1
+  endwhile
 
-	" Special Case: User deleted Prompt by accident. Insert a new one.
-	if ln == 0
-		call foreplay#repl#show_prompt()
-		return ""
-	endif
+  " Special Case: User deleted Prompt by accident. Insert a new one.
+  if ln == 0
+    call foreplay#repl#show_prompt()
+    return ""
+  endif
 
-	let cmd = foreplay#util#Yank("l", ln.",".line("$")."yank l")
+  let cmd = foreplay#util#Yank("l", ln.",".line("$")."yank l")
 
-	let cmd = substitute(cmd, "^".prompt."\\s*", "", "")
-	let cmd = substitute(cmd, "\n$", "", "")
-	return cmd
+  let cmd = substitute(cmd, "^".prompt."\\s*", "", "")
+  let cmd = substitute(cmd, "\n$", "", "")
+  return cmd
 endfunction
 
 " Returns 1 if the given string results in a readable form,
 " 0 otherwise.
 function! foreplay#repl#is_readable(form)
   let test_form = '(try (read-string "' .
-                          \ escape(a:form, '\"').'") 1 ' .
-                          \ '(catch RuntimeException _ 0))'
+        \ escape(a:form, '\"').'") 1 ' .
+        \ '(catch RuntimeException _ 0))'
   let result = foreplay#evalparse(test_form)
   return result
 endfunction
 
-function! foreplay#repl#enter_hook()
-	let lastCol = {}
+function! foreplay#repl#enter_hook() abort
+  let lastCol = {}
 
-	function lastCol.f() dict
-		normal! g_
-		return col(".")
-	endfunction
+  function lastCol.f() dict
+    normal! g_
+    return col(".")
+  endfunction
 
-    let last_col = foreplay#util#WithSavedPosition(lastCol)
-    if line(".") < line("$") || col(".") < last_col
-		call foreplay#repl#do_enter()
-		return
-	endif
+  let last_col = foreplay#util#WithSavedPosition(lastCol)
+  if line(".") < line("$") || col(".") < last_col
+    call foreplay#repl#do_enter()
+    return
+  endif
 
-	let cmd = foreplay#repl#get_command()
+  let cmd = foreplay#repl#get_command()
 
-	" Special Case: Showed prompt (or user just hit enter).
-	if cmd =~ '^\(\s\|\n\)*$'
-		execute "normal! a\<CR>"
-		startinsert!
-		return
-	endif
+  " Special Case: Showed prompt (or user just hit enter).
+  if cmd =~ '^\(\s\|\n\)*$'
+    execute "normal! a\<CR>"
+    startinsert!
+    return
+  endif
 
-    "Currently unused feature (special commands)
-	"if self.isReplCommand(cmd)
-		"call self.doReplCommand(cmd)
-		"return
-	"endif
+  "Currently unused feature (special commands)
+  "if self.isReplCommand(cmd)
+  "call self.doReplCommand(cmd)
+  "return
+  "endif
 
-	if !foreplay#repl#is_readable(cmd)
-		call foreplay#repl#do_enter()
-	else
-        let result = foreplay#repl#eval(cmd)
-		call foreplay#repl#show_text(result.out)
-        if result.err !=# ''
-          call foreplay#repl#show_text("\nstderr:\n".result.err)
-        endif
+  if !foreplay#repl#is_readable(cmd)
+    call foreplay#repl#do_enter()
+  else
+    let result = foreplay#repl#eval(cmd)
+    if has_key(result, 'out')
+      call foreplay#repl#show_text(result.out)
+    endif
+    if has_key(result, 'err') && result.err !=# ''
+      call foreplay#repl#show_text("\nstderr:\n".result.err)
+    endif
 
-		let b:repl_history_depth = 0
-		let b:repl_history = [cmd] + b:repl_history
-        let b:repl_namespace = result.ns
-        let b:repl_depth = result['repl-depth']
+    let b:repl_history_depth = 0
+    let b:repl_history = [cmd] + b:repl_history
 
-        call foreplay#repl#show_prompt()
-	endif
+    if has_key(result, 'ns')
+      let b:repl_namespace = result.ns
+    endif
+    if has_key(result, 'repl-depth')
+      let b:repl_depth = result['repl-depth']
+    endif
+
+    call foreplay#repl#show_prompt()
+  endif
 endfunction
 
 inoremap <Plug>clj_repl_uphist. <C-O>:call foreplay#repl#up_history()<CR>
 inoremap <Plug>clj_repl_downhist. <C-O>:call foreplay#repl#down_history()<CR>
 
 function! foreplay#repl#delete_last()
-	normal! G
+  normal! G
 
-	while getline("$") !~ foreplay#repl#prompt()
-		normal! dd
-	endwhile
+  while getline("$") !~ foreplay#repl#prompt()
+    normal! dd
+  endwhile
 
-	normal! dd
+  normal! dd
 endfunction
 
 function! foreplay#repl#up_history()
-	let histLen = len(b:repl_history)
-	let histDepth = b:repl_history_depth
+  let histLen = len(b:repl_history)
+  let histDepth = b:repl_history_depth
 
-	if histLen > 0 && histLen > histDepth
-		let cmd = b:repl_history[histDepth]
-		let b:repl_history_depth = histDepth + 1
+  if histLen > 0 && histLen > histDepth
+    let cmd = b:repl_history[histDepth]
+    let b:repl_history_depth = histDepth + 1
 
-		call foreplay#repl#delete_last()
+    call foreplay#repl#delete_last()
 
-        let prompt = foreplay#repl#prompt()
-		call foreplay#repl#show_text(prompt.' '.cmd)
-	endif
+    let prompt = foreplay#repl#prompt()
+    call foreplay#repl#show_text(prompt.' '.cmd)
+  endif
 
-	normal! G$
+  normal! G$
 endfunction
 
 function! foreplay#repl#down_history()
-	let histLen = len(b:repl_history)
-	let histDepth = b:repl_history_depth
-    let prompt = foreplay#repl#prompt()
+  let histLen = len(b:repl_history)
+  let histDepth = b:repl_history_depth
+  let prompt = foreplay#repl#prompt()
 
-	if histDepth > 0 && histLen > 0
-		let b:repl_history_depth = histDepth - 1
-		let cmd = b:repl_history[b:repl_history_depth]
+  if histDepth > 0 && histLen > 0
+    let b:repl_history_depth = histDepth - 1
+    let cmd = b:repl_history[b:repl_history_depth]
 
-		call foreplay#repl#delete_last()
+    call foreplay#repl#delete_last()
 
-		call foreplay#repl#show_text(prompt.' '.cmd)
-	elseif histDepth == 0
-		call foreplay#repl#delete_last()
-		call foreplay#repl#show_text(prompt.' ')
-	endif
+    call foreplay#repl#show_text(prompt.' '.cmd)
+  elseif histDepth == 0
+    call foreplay#repl#delete_last()
+    call foreplay#repl#show_text(prompt.' ')
+  endif
 
-	normal! G$
+  normal! G$
 endfunction
 
 
