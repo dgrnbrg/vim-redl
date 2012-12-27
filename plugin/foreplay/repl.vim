@@ -1,3 +1,6 @@
+" Part of Vim filetype plugin for Clojure
+" Language:     Clojure
+" Maintainer:   David Greenberg <dsg123456789@gmail.com>
 
 " Evaluate a string form on the given repl
 " Returns a dictionary with the stdout, stderr,

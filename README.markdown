@@ -1,12 +1,12 @@
-# foreplay.vim
+# Redl.vim -- Read Eval Debug Loop
 
-There's a REPL in foreplay, but you probably wouldn't have noticed if I hadn't
-told you.  Such is the way with foreplay.vim.  By the way, this plugin is for
-Clojure.
+This plugin integrates Vim with a running Clojure JVM. It provides a repl that
+supports breakpoints, documentation lookup, source code navigation, and
+omnicompletion.
 
 ## Installation
 
-Foreplay.vim doesn't provide indenting or syntax highlighting, so you'll want
+Redl.vim doesn't provide indenting or syntax highlighting, so you'll want
 [a set of Clojure runtime files](https://github.com/guns/vim-clojure-static).
 
 If you don't have a preferred installation method, I recommend
@@ -14,7 +14,7 @@ installing [pathogen.vim](https://github.com/tpope/vim-pathogen), and
 then simply copy and paste:
 
     cd ~/.vim/bundle
-    git clone git://github.com/tpope/vim-foreplay.git
+    git clone git://github.com/dgrnbrg/vim-redl.git
     git clone git://github.com/guns/vim-clojure-static.git
 
 Once help tags have been generated, you can view the manual with
@@ -35,23 +35,44 @@ The only external dependency is that you have Ruby installed.
 
 Oh, and if you don't have an nREPL connection, it falls back to using
 `java clojure.main`, using a class path based on your Leiningen or Maven
-config.  It's a bit slow, but a two second delay its vastly preferable to
-being forced out of my flow for a single command, in my book.
+config.  This is a bit slow.
 
 ### Not quite a REPL
 
-You know that one plugin that provides a REPL in a split window and works
-absolutely flawlessly, never breaking just because you did something innocuous
-like backspace through part of the prompt?  No?  Such a shame, you really
-would have liked it.
-
-I've taken a different approach in foreplay.vim.  `cq`  (Think "Clojure
-Quasi-REPL") is the prefix for a set of commands that bring up a *command-line
-window* — the same thing you get when you hit `q:` — but set up for Clojure
-code.
+There are 2 repls in redl.vim. One of them is the vim-foreplay repl:  `cq`
+(Think "Clojure Quasi-REPL") is the prefix for a set of commands that
+bring up a *command-line window* — the same thing you get when you hit `q:`
+— but set up for Clojure code.
 
 `cqq` prepopulates the command-line window with the expression under the
 cursor.  `cqc` gives you a blank line in insert mode.
+
+### A REPL
+
+To access the other repl, use `:Repl` or `:ReplHere`. The former opens a new
+split window containing a repl in the namespace `user`. The latter opens the
+repl in the namespace of the current file.
+
+If you don't reconfigure the plugs below, these are the default controls for
+the repl:
+
+- `ctrl-e` in insert mode evaluates the current line, regardless of cursor position.
+- `return` in insert mode at the end of the line evaluates the line, otherwise inserts a newline.
+- `ctrl-up` goes up in the history
+- `ctrl-down` goes down in the history
+
+To use the breakpoint feature, check out dgrnbrg/redl (short version: `redl.core/break`
+and `redl.core/continue`.
+
+The plugs for the repl:
+
+    <Plug>clj_repl_enter.
+    <Plug>clj_repl_eval.
+    <Plug>clj_repl_hat.
+    <Plug>clj_repl_Ins.
+    <Plug>clj_repl_uphist.
+    <Plug>clj_repl_downhist.
+
 
 ### Evaluating from the buffer
 
@@ -77,12 +98,10 @@ I'm new to Clojure, so stuff that helps me understand code is a top priority.
 
 * `gf`, everybody's favorite "go to file" command, works on namespaces.
 
-Where possible, I favor enhancing built-ins over inventing a bunch of
-`<Leader>` maps.
-
 ### Omnicomplete
 
-Because why not?  It works in the quasi-REPL too.
+This feature requires redl to be loaded in the connected JVM, as this plugin
+uses redl's advanced fuzzy completion engine.
 
 ### FAQ
 
@@ -90,7 +109,7 @@ Because why not?  It works in the quasi-REPL too.
 
 The short answer is because the JVM is slow.
 
-The first time you load a Clojure file from any given project, foreplay.vim
+The first time you load a Clojure file from any given project, redl.vim
 sets about trying to determine your class path, leveraging either
 `lein classpath` or `mvn dependency:build-classpath`.  This takes a couple of
 seconds or so in the best case scenario, and potentially much longer if it
@@ -107,29 +126,14 @@ The cache is expired when the timestamp on `project.clj` or `pom.xml` changes.
 
 ## Contributing
 
-More than any other plugin, I'm in over my head here.  I tried to do my
-homework, but you don't learn best practices overnight.  Please, open
-[GitHub issues][] for bug reports and feature requests.  Even better than a
+Please, open GitHub issues for bug reports and feature requests.  Even better than a
 feature request is just to tell me the pain you're experiencing, and perhaps
-some ideas for what might eliminate it.  I know Vimscript; you know Clojure.
-Let's synergize.
+some ideas for what might eliminate it.
 
-I'm a stickler for [commit messages][], so if you send me a pull
-request with so much as superfluous period in the subject line, I will
-reject it, then TP your house.
-
-[GitHub issues]: http://github.com/tpope/vim-foreplay/issues
-[commit messages]: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
-
-## Self-Promotion
-
-Like foreplay.vim? Follow the repository on
-[GitHub](https://github.com/tpope/vim-foreplay). And if
-you're feeling especially charitable, follow [tpope](http://tpo.pe/) on
-[Twitter](http://twitter.com/tpope) and
-[GitHub](https://github.com/tpope).
+This plugin was made by borrowing generous amounts of code from vimclojure and vim-foreplay.
 
 ## License
 
-Copyright © Tim Pope.  Distributed under the same terms as Vim itself.
+Copyright © Tim Pope, David Greenberg, and Meikel Brandmeyer.
+Distributed under the same terms as Vim itself.
 See `:help license`.
