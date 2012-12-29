@@ -68,8 +68,8 @@ function! foreplay#omnicomplete(findstart, base) abort
   else
     try
       let ns = foreplay#ns()
-      let results = foreplay#evalparse('(map redl.core/->vim-omnicomplete'.
-                              \' (redl.core/completions '.s:qsym(ns).' "'.a:base.'"))')
+      let results = foreplay#evalparse('(map redl.complete/->vim-omnicomplete'.
+                              \' (redl.complete/completions '.s:qsym(ns).' "'.a:base.'"))')
       if type(results) == type([])
         return results
       else
