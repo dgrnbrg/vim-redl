@@ -1,4 +1,4 @@
-" nrepl/foreplay_connection.vim
+" autoload/nrepl/foreplay_connection.vim
 " Maintainer:   Tim Pope <http://tpo.pe/>
 
 if exists("g:autoloaded_nrepl_foreplay_connection") || &cp
@@ -69,7 +69,7 @@ function! s:shellesc(arg) abort
   if a:arg =~ '^[A-Za-z0-9_/.-]\+$'
     return a:arg
   elseif &shell =~# 'cmd'
-    return '"'.substitute(substitute(a:arg, '"', '""', 'g'), '%', '"%"', 'g').'"'
+    return '"'.substitute(substitute(a:arg, '"', '""""', 'g'), '%', '"%"', 'g').'"'
   else
     let escaped = shellescape(a:arg)
     if &shell =~# 'sh' && &shell !~# 'csh'
@@ -129,6 +129,8 @@ function! s:nrepl_process(payload) dict abort
         if index(combined[key], response[key]) < 0
           call extend(combined[key], [response[key]])
         endif
+      elseif key ==# 'out' && response.out =~# '^\b.*(.*)$'
+        let combined.stacktrace = split(response.out, "\b")
       elseif type(response[key]) == type('')
         let combined[key] = get(combined, key, '') . response[key]
       else
@@ -143,14 +145,25 @@ function! s:nrepl_process(payload) dict abort
 endfunction
 
 function! s:nrepl_eval(expr, ...) dict abort
-  let payload = {"op": "eval", "code": a:expr}
-  if a:0
-    let payload.ns = a:1
+  let payload = {"op": "eval"}
+  let payload.code = '(try (clojure.core/eval ''(do '.a:expr."\n".'))' .
+        \ ' (catch Exception e' .
+        \ '   (clojure.core/print (clojure.core/apply clojure.core/str (clojure.core/interleave (clojure.core/repeat "\b") (clojure.core/map clojure.core/str (.getStackTrace e)))))' .
+        \ '   (throw e)))'
+  let options = a:0 ? a:1 : {}
+  if has_key(options, 'ns')
+    let payload.ns = options.ns
   elseif has_key(self, 'ns')
     let payload.ns = self.ns
   endif
-  if has_key(self, 'session')
-    let payload.session = self.session
+  if get(options, 'session', 1)
+    if has_key(self, 'session')
+      let payload.session = self.session
+    elseif &verbose
+      echohl WarningMSG
+      echo "nREPL: server has bug preventing session support"
+      echohl None
+    endif
   endif
   let response = self.process(payload)
   if has_key(response, 'ns') && !a:0
@@ -168,7 +181,9 @@ function! s:nrepl_call(payload) dict abort
         \ 'begin;' .
         \ 'TCPSocket.open(%(' . self.host . '), ' . self.port . ') {|s|' .
         \ 's.write(ARGV.first); loop {' .
-        \ 'body = s.readpartial(8192); print body;' .
+        \ 'body = s.readpartial(8192);' .
+        \ 'raise %(not an nREPL server: upgrade to Leiningen 2) if body =~ /=> $/;' .
+        \ 'print body;' .
         \ 'break if body.include?(%(6:statusl4:done)) }};' .
         \ 'rescue; abort $!.to_s;' .
         \ 'end') . ' ' .
@@ -186,47 +201,64 @@ let s:nrepl = {
       \ 'path': s:function('s:nrepl_path'),
       \ 'process': s:function('s:nrepl_process')}
 
-if !has('ruby')
+if !has('python')
   finish
 endif
 
-ruby <<
-require 'timeout'
-require 'socket'
-class << ::VIM
-  def string_encode(str)
-    '"' + str.gsub(/[\000-\037"\\]/) { |x| "\\%03o" % (x.respond_to?(:ord) ? x.ord : x[0]) } + '"'
-  end
-  def let(var, value)
-    command("let #{var} = #{string_encode(value)}")
-  end
-end
-.
+python << EOF
+import vim
+import select
+import socket
+import string
+import re
+
+def foreplay_string_encode(input):
+  str_list = []
+  for c in input:
+    if (000 <= ord(c) and ord(c) <= 037) or c == '"' or c == "\\":
+      str_list.append("\\{0:03o}".format(ord(c)))
+    else:
+      str_list.append(c)
+  return '"' + ''.join(str_list) + '"'
+
+def foreplay_let(var, value):
+  return vim.command('let ' + var + " = " + foreplay_string_encode(value))
+
+def foreplay_repl_interact():
+  buffer = ''
+  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  host = vim.eval('self.host')
+  port = int(vim.eval('self.port'))
+  s.settimeout(8)
+  try:
+    s.connect((host, port))
+    s.setblocking(1)
+    s.sendall(vim.eval('payload'))
+    while True:
+      while len(select.select([s], [], [], 0.1)[0]) == 0:
+        vim.eval('getchar(1)')
+      body = s.recv(8192)
+      if re.search("=> $", body) != None:
+        raise Exception("not an nREPL server: upgrade to Leiningen 2")
+      buffer += body
+      if string.find(body, '6:statusl4:done') != -1:
+        break
+    foreplay_let('out', buffer)
+  except Exception, e:
+    foreplay_let('err', str(e))
+  finally:
+    s.close()
+EOF
 
 function! s:nrepl_call(payload) dict abort
   let payload = nrepl#foreplay_connection#bencode(a:payload)
-  ruby <<
-  begin
-    buffer = ''
-    Timeout.timeout(16) do
-      TCPSocket.open(::VIM.evaluate('self.host'), ::VIM.evaluate('self.port').to_i) do |s|
-        s.write(::VIM.evaluate('payload'))
-        loop do
-          body = s.readpartial(8192)
-          buffer << body
-          break if body.include?("6:statusl4:done")
-        end
-        ::VIM.let('out', buffer)
-      end
-    end
-  rescue
-    ::VIM.let('err', $!.to_s)
-  end
-.
+  python << EOF
+foreplay_repl_interact()
+EOF
   if !exists('err')
     return nrepl#foreplay_connection#bdecode('l'.out.'e')
   endif
-  throw 'nREPL: '.err
+  throw 'nREPL Connection Error: '.err
 endfunction
 
 " vim:set et sw=2:

@@ -8,6 +8,7 @@ omnicompletion.
 
 Redl.vim doesn't provide indenting or syntax highlighting, so you'll want
 [a set of Clojure runtime files](https://github.com/guns/vim-clojure-static).
+You might also want [classpath.vim][] to run code when no REPL is available.
 
 If you don't have a preferred installation method, I recommend
 installing [pathogen.vim](https://github.com/tpope/vim-pathogen), and
@@ -15,6 +16,7 @@ then simply copy and paste:
 
     cd ~/.vim/bundle
     git clone git://github.com/dgrnbrg/vim-redl.git
+    git clone git://github.com/tpope/vim-classpath.git
     git clone git://github.com/guns/vim-clojure-static.git
 
 Once help tags have been generated, you can view the manual with
@@ -31,11 +33,15 @@ based on `target/repl-port`, otherwise it's just a `:Connect` away.  You can
 connect to multiple instances of nREPL for different projects, and it will
 use the right one automatically.
 
-The only external dependency is that you have Ruby installed.
+The only external dependency is that you have either a Vim with Python support
+compiled in, or `ruby` in your path. (Don't ask.)
 
-Oh, and if you don't have an nREPL connection, it falls back to using
+Oh, and if you don't have an nREPL connection, installing [classpath.vim][]
+lets it falls back to using
 `java clojure.main`, using a class path based on your Leiningen or Maven
 config.  This is a bit slow.
+
+[classpath.vim]: https://github.com/tpope/vim-classpath
 
 ### Not quite a REPL
 
@@ -81,6 +87,9 @@ file), `:Require` requires a namespace with `:reload` (`:Require!` does
 `:reload-all`), either the current buffer or a given argument.  There's a `cp`
 operator that evaluates a given motion (`cpp` for the expression under the
 cursor, `cpf` for the entire buffer).
+
+Any failed evaluation loads the stack trace into the location list, which
+can be easily accessed with `:lopen`.
 
 ### Navigating and Comprehending
 

@@ -14,10 +14,10 @@ Upon loading a Clojure buffer, the 'path' option is automatically set to your
 class path.  The class path is found by `lein classpath`, `mvn
 dependency:build-classpath`, or failing both of those, $CLASSPATH.
 
-Finding the class path can be slow.  To cache it across multiple invocations
-of Vim, try
+This behavior is going away soon.  Install classpath.vim if you'd like to keep
+it.
 
-    set viminfo+=!
+        https://github.com/tpope/vim-classpath
 
 LEININGEN                                       *foreplay-leiningen*
 
@@ -37,11 +37,12 @@ CONNECTING TO A REPL                            *foreplay-connect*
                         REPL server.
 
 The REPL is used for the commands below. If no REPL is found for the current
-buffer, java (or $JAVA_CMD) is invoked directly (using 'path' as the class
-path), which can be quite slow depending on your setup.
+buffer and classpath.vim is installed, java (or $JAVA_CMD) is invoked
+directly, which can be quite slow depending on your setup.
 
 The only adapter shipped with foreplay.vim is for nREPL.  You need Ruby
-installed and either |if_ruby| or the ruby command in your PATH.
+installed and either |if_pyth| or the ruby command in your PATH.
+(This curious combination is an accident of history.)
 
 DOCUMENTATION                                   *foreplay-documentation*
 
@@ -90,11 +91,27 @@ gf                      Go to the file for the namespace under the cursor.
 :Dsplit {symbol}        Jump to the definition for the given symbol in a
                         split.
 
+                                                *foreplay-:A*
+:A                      In a test file, edit the implementation, and vice
+                        versa.  Basically adds or removes -test from the end
+                        of the current namespace and searches for it in the
+                        class path.
+
+                                                *foreplay-:AS*
+:AS                     Like :A, but in a split.
+
+                                                *foreplay-:AV*
+:AV                     Like :A, but in a vertical split.
+
+                                                *foreplay-:AT*
+:AT                     Like :A, but in a tab.
+
 EVALUATING CODE                                 *foreplay-eval*
 
 All code is evaluated in the namespace of the current file, requiring it if
 necessary.  If the current file sits outside the class path (project.clj, for
-example), the user namespace is used instead.
+example), the user namespace is used instead.  If an exception occurs, the
+stack trace is loaded into the |location-list|.  Use |:lopen| to view it.
 
                                                 *foreplay-:Require*
 :Require [ns]           Require :reload the given/current namespace.
