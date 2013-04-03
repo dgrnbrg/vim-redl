@@ -5,11 +5,11 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! foreplay#util#SynIdName()
+function! redl#util#SynIdName()
   return synIDattr(synID(line("."), col("."), 0), "name")
 endfunction
 
-function! foreplay#util#WithSaved(closure)
+function! redl#util#WithSaved(closure)
   let v = a:closure.save()
   try
     let r = a:closure.f()
@@ -34,11 +34,11 @@ function! s:RestorePosition(value) dict
   call setpos(".", [0, l, c, 0])
 endfunction
 
-function! foreplay#util#WithSavedPosition(closure)
+function! redl#util#WithSavedPosition(closure)
   let a:closure.save = function("s:SavePosition")
   let a:closure.restore = function("s:RestorePosition")
 
-  return foreplay#util#WithSaved(a:closure)
+  return redl#util#WithSaved(a:closure)
 endfunction
 
 function! s:SaveRegister(reg)
@@ -57,12 +57,12 @@ function! s:RestoreRegisters(registers) dict
   endfor
 endfunction
 
-function! foreplay#util#WithSavedRegister(reg, closure)
+function! redl#util#WithSavedRegister(reg, closure)
   let a:closure._register = a:reg
   let a:closure.save = function("s:SaveRegisters")
   let a:closure.restore = function("s:RestoreRegisters")
 
-  return foreplay#util#WithSaved(a:closure)
+  return redl#util#WithSaved(a:closure)
 endfunction
 
 function! s:SaveOption() dict
@@ -73,12 +73,12 @@ function! s:RestoreOption(value) dict
   execute "let &" . self._option . " = a:value"
 endfunction
 
-function! foreplay#util#WithSavedOption(option, closure)
+function! redl#util#WithSavedOption(option, closure)
   let a:closure._option = a:option
   let a:closure.save = function("s:SaveOption")
   let a:closure.restore = function("s:RestoreOption")
 
-  return foreplay#util#WithSaved(a:closure)
+  return redl#util#WithSaved(a:closure)
 endfunction
 
 function! s:DoYank() dict
@@ -86,21 +86,21 @@ function! s:DoYank() dict
   return getreg(self.reg)
 endfunction
 
-function! foreplay#util#Yank(r, how)
+function! redl#util#Yank(r, how)
   let closure = {
         \ 'reg': a:r,
         \ 'yank': a:how,
         \ 'f': function("s:DoYank")
         \ }
 
-  return foreplay#util#WithSavedRegister(a:r, closure)
+  return redl#util#WithSavedRegister(a:r, closure)
 endfunction
 
-function! foreplay#util#MoveBackward()
+function! redl#util#MoveBackward()
   call search('\S', 'Wb')
 endfunction
 
-function! foreplay#util#MoveForward()
+function! redl#util#MoveForward()
   call search('\S', 'W')
 endfunction
 
