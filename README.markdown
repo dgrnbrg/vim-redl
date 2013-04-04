@@ -21,6 +21,16 @@ to your `~/.lein/profiles.clj`.
 - `:injections [(require '[redl core complete])]` ensure that redl is loaded on jvm startup
 - `:dependencies [[redl "0.1.0"]]` ensures that redl is available on the classpath
 
+A minimal profiles.clj (including REDL, Spyscope, and `lein pprint`) would look like:
+
+```clojure
+{:user {:dependencies [[spyscope "0.1.2"]
+                       [redl "0.1.0"]]
+        :injections [(require 'spyscope.core)
+                     (require '[redl complete core])]
+        :plugins [[lein-pprint "1.1.1"]]}}
+```
+
 ### A REPL
 
 To access the other repl, use `:Repl` or `:ReplHere`. The former opens a new
