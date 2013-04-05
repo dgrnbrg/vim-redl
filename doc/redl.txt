@@ -1,0 +1,68 @@
+*redl.txt*  Clojure Read Eval Debug Loop
+
+Author:  David Greenberg <dsg123456789 {at} gmail {dot} com>
+License: Same terms as Vim itself (see |license|)
+
+You need Clojure runtime (vim-clojure-static) plugin and vim-fireplace + vim-classpath plugins to use this plugin.
+
+CLOJURE CONFIGURATION                      *redl-clojure-configuration*
+
+Add following lines to your ~/.lein/profiles.clj
+
+:injections [(require '[redl core complete])] ensure that redl is loaded on jvm startup
+:dependencies [[redl "0.1.0"]] ensures that redl is available on the classpath
+
+A minimal profiles.clj (including REDL, Spyscope, and lein pprint) would look like:
+
+{:user {:dependencies [[spyscope "0.1.2"]
+                       [redl "0.1.0"]]
+        :injections [(require 'spyscope.core)
+                     (require '[redl complete core])]
+        :plugins [[lein-pprint "1.1.1"]]}}
+
+REPL                                       *redl-repl*
+
+Repl is only available in Clojure filetype.
+
+                                           *redl-:Repl*
+:Repl                   Show repl in user namespace.
+
+                                           *redl-:ReplHere*
+:ReplHere               Show repl in current namespace.
+
+                                           *redl-CTRL-e*
+C-e                     Evaluate current line in instert mode, regardless of
+                        cursor position.
+
+                                           *redl-CR*
+CR                      In insert mode at the end of the line evaluates the line, otherwise inserts a newline.
+
+                                           *redl-CTRL-UP*
+C-Up                    Goes up in the repl history.
+
+                                           *redl-CTRL-DOWN*
+C-Down                  Goes down in the repl history.
+
+OMNICOMPLETE                               *redl-omnicomplete*
+
+This feature requires redl to be loaded in the connected JVM, as this plugin
+uses redl's advanced fuzzy completion engine.
+
+KEYS                                       *redl-keys*
+
+To change default keys you can use following plugs:
+
+<Plug>clj_repl_enter.    CR
+<Plug>clj_repl_eval.     C-e
+<Plug>clj_repl_hat.      ^
+<Plug>clj_repl_Ins.      I
+<Plug>clj_repl_uphist.   C-Up
+<Plug>clj_repl_downhist. C-Down
+
+ABOUT                                      *redl-about*
+
+Grab the latest version or report a bug on GitHub:
+
+https://github.com/dgrnbrg/vim-redl
+
+ vim:tw=78:et:ft=help:norl:
