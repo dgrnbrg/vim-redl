@@ -46,6 +46,44 @@ augroup redl_completion
   autocmd FileType clojure setlocal omnifunc=redl#omnicomplete
 augroup END
 
+function! s:Eval(bang, line1, line2, count, args) abort
+  if a:args !=# ''
+    let expr = a:args
+  else
+    if a:count ==# 0
+      normal! ^
+      let line1 = searchpair('(','',')', 'bcrn', g:fireplace#skip)
+      let line2 = searchpair('(','',')', 'rn', g:fireplace#skip)
+    else
+      let line1 = a:line1
+      let line2 = a:line2
+    endif
+    if !line1 || !line2
+      return ''
+    endif
+    let expr = join(getline(line1, line2), "\n")
+    if a:bang
+      exe line1.','.line2.'delete _'
+    endif
+  endif
+  if a:bang
+    try
+      let result = fireplace#session_eval(expr)
+      if a:args !=# ''
+        call append(a:line1, result)
+        exe a:line1
+      else
+        call append(a:line1-1, result)
+        exe a:line1-1
+      endif
+    catch /^Clojure:/
+    endtry
+  else
+    call fireplace#echo_session_eval(expr)
+  endif
+  return ''
+endfunction
+
 function! s:setup_eval() abort
   command! -buffer -bang -range=0 -nargs=? -complete=customlist,redl#eval_complete Eval :exe s:Eval(<bang>0, <line1>, <line2>, <count>, <q-args>)
 
