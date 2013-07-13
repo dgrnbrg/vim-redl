@@ -41,8 +41,16 @@ function! redl#repl#beginning_of_line()
 endfunction
 
 " Appends the given lines to the end of the buffer
+" Incorporates kotarak's fix for showText in vimclojure
 function! redl#repl#show_text(lines)
-  call append(line('$'), split(a:lines, "\n"))
+  if type(a:lines) == type("")
+    " XXX: Opening the box of the pandora.
+    " 2012-01-09: Adding Carriage Returns here.
+    let text = split(a:lines, '\r\?\n')
+  else
+    let text = a:lines
+  endif
+  call append(line("$"), text)
 endfunction
 
 " When invoked, writes out the prompt in a new line,
