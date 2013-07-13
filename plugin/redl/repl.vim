@@ -75,7 +75,7 @@ function! redl#repl#create(namespace)
   setlocal noswapfile
   set filetype=clojure
   let ns = "'".a:namespace
-  let b:repl_id = fireplace#evalparse('(redl.core/make-repl '.ns.')')
+  let b:repl_id = fireplace#evalparse('(do (ns '.a:namespace.') (redl.core/make-repl '.ns.'))')
   let b:repl_namespace = a:namespace
   let b:repl_depth = 0
   let b:repl_history_depth = 0
