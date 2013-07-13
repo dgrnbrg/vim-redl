@@ -6,6 +6,9 @@ omnicompletion.
 
 ## Installation
 
+Vim Redl depends on [fireplace.vim](https://github.com/tpope/vim-fireplace).
+Please install fireplace first.
+
 First, you'll need to install this as a Vim plugin. Do that with
 
     cd ~/.vim/bundle
