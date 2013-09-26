@@ -84,7 +84,7 @@ function! redl#repl#create(namespace)
   if !hasmapto("<Plug>clj_repl_enter.", "i")
     imap <buffer> <silent> <CR> <Plug>clj_repl_enter.
   endif
-  if !hasmapto("<Pulg>clj_repl_eval.", "i")
+  if !hasmapto("<Plug>clj_repl_eval.", "i")
     imap <buffer> <silent> <C-e> <Plug>clj_repl_eval.
   endif
   if !hasmapto("<Plug>clj_repl_hat.", "n")
