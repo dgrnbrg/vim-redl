@@ -11,7 +11,7 @@ function! redl#repl#eval(form)
   endif
   let escaped_form = escape(a:form,'\"')
   let full_form = '(redl.core/repl-eval '.b:repl_id .
-        \ ' (read-string "(do '.escaped_form.')"))'
+        \ ' "'.escaped_form.'")'
   return fireplace#evalparse(full_form)
 endfunction
 
