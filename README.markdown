@@ -28,7 +28,7 @@ A minimal profiles.clj (including REDL, Spyscope, and `lein pprint`) would look 
 
 ```clojure
 {:user {:dependencies [[spyscope "0.1.2"]
-                       [redl "0.2.0"]]
+                       [redl "0.2.1"]]
         :injections [(require 'spyscope.core)
                      (require '[redl complete core])]
         :plugins [[lein-pprint "1.1.1"]]}}
