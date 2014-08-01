@@ -70,10 +70,17 @@ inoremap <Plug>clj_repl_downhist. <C-O>:call redl#repl#down_history()<CR>
 
 " This creates a new repl in a split
 function! redl#repl#create(namespace)
+  if !exists('b:redl_spawn_count')
+    let b:redl_spawn_count = 0
+  else
+    let b:redl_spawn_count = b:redl_spawn_count + 1
+  endif
+  let bufname = bufname('%').'.redl.'.b:redl_spawn_count
   new
   setlocal buftype=nofile
   setlocal noswapfile
   set filetype=clojure
+  execute ':file '.bufname
   let ns = "'".a:namespace
   let b:repl_id = fireplace#evalparse('(do (in-ns '.ns.') (redl.core/make-repl '.ns.'))')
   let b:repl_namespace = a:namespace
