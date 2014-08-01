@@ -76,7 +76,11 @@ function! redl#repl#create(namespace)
     let b:redl_spawn_count = b:redl_spawn_count + 1
   endif
   let bufname = bufname('%').'.redl.'.b:redl_spawn_count
-  new
+  if exists('g:redl_use_vsplit')
+    vnew
+  else
+    new
+  endif
   setlocal buftype=nofile
   setlocal noswapfile
   set filetype=clojure
