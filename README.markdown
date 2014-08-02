@@ -50,11 +50,11 @@ The default controls for the repl are:
 - `ctrl-up` in insert mode goes up in the history
 - `ctrl-down` in insert mode goes down in the history
 
-If some of these key bindings don't work on your machine, you can try to redefine them in your .vimrc. For example:
+If some of these key bindings don't work on your machine, you can try to redefine them in your .vimrc. For example, to bind moving up in the history to Ctrl-Shift-K:
 
     imap <silent> <C-S-K> <Plug>clj_repl_uphist.
 
-To change key bindings, the plugs for the repl are:
+To change other key bindings, the plugs for the repl are:
 
     <Plug>clj_repl_enter.
     <Plug>clj_repl_eval.
