@@ -39,18 +39,22 @@ To access the other repl, use `:Repl` or `:ReplHere`. The former opens a new
 split window containing a repl in the namespace `user`. The latter opens the
 repl in the namespace of the current file.
 
-If you don't reconfigure the plugs below, these are the default controls for
-the repl:
+To open this repl in a vertical split (rather than horizontal), you can set this option in your .vimrc:
+
+    let g:redl_use_vsplit = 1
+
+The default controls for the repl are:
 
 - `ctrl-e` in insert mode evaluates the current line, regardless of cursor position.
 - `return` in insert mode at the end of the line evaluates the line, otherwise inserts a newline.
-- `ctrl-up` goes up in the history
-- `ctrl-down` goes down in the history
+- `ctrl-up` in insert mode goes up in the history
+- `ctrl-down` in insert mode goes down in the history
 
-To use the breakpoint feature, check out dgrnbrg/redl (short version: `redl.core/break`
-and `redl.core/continue`.
+If some of these key bindings don't work on your machine, you can try to redefine them in your .vimrc. For example:
 
-The plugs for the repl:
+    imap <silent> <C-S-K> <Plug>clj_repl_uphist.
+
+To change key bindings, the plugs for the repl are:
 
     <Plug>clj_repl_enter.
     <Plug>clj_repl_eval.
@@ -59,6 +63,8 @@ The plugs for the repl:
     <Plug>clj_repl_uphist.
     <Plug>clj_repl_downhist.
 
+To use the breakpoint feature, check out [dgrnbrg/redl](https://github.com/dgrnbrg/redl)
+(short version: `(redl.core/break)`, and then `(redl.core/continue)` in the debug sub-repl).
 
 ### Omnicomplete
 
