@@ -105,10 +105,11 @@ function! redl#repl#create(namespace)
     nmap <buffer> <silent> I <Plug>clj_repl_Ins.
   endif
   if !hasmapto("<Plug>clj_repl_uphist.", "i")
-    imap <buffer> <silent> <C-Up> <Plug>clj_repl_uphist.
+    imap <silent> <C-Up> <Plug>clj_repl_uphist.
   endif
   if !hasmapto("<Plug>clj_repl_downhist.", "i")
-    imap <buffer> <silent> <C-Down> <Plug>clj_repl_downhist.
+    imap <silent> <C-Down> <Plug>clj_repl_downhist.
+        " Note: <buffer> made the history command not work for some users
   endif
 
   call redl#repl#show_prompt()
