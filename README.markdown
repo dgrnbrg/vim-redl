@@ -15,7 +15,7 @@ First, you'll need to install this as a Vim plugin. Do that with
     git clone git://github.com/dgrnbrg/vim-redl.git
 
 You'll need Pathogen so that vim-redl gets loaded. Otherwise, if you are
-a user of Vundle or NeoBundle, you can just use `Bundle 'dgrnbrg/vim-redl'`
+a user of Vundle or NeoBundle, you can just use `Plugin 'dgrnbrg/vim-redl'`
 or `NeoBundle 'dgrnbrg/vim-redl'` respectively to install the Vim component.
 
 Then, you'll need to install the Clojure component. To get this, you just need to add 2 lines
